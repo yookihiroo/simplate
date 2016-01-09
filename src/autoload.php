@@ -2,7 +2,9 @@
 
 // framework/autoload.php
 
-require_once __DIR__.'/vendor/symfony/class-loader/Psr4ClassLoader.php';
+$app_dir = realpath(__DIR__. '/../');
+
+require_once $app_dir.'/vendor/symfony/class-loader/Psr4ClassLoader.php';
 
 use Symfony\Component\ClassLoader\Psr4ClassLoader;
 
@@ -10,4 +12,4 @@ use Symfony\Component\ClassLoader\Psr4ClassLoader;
 $loader = new Psr4ClassLoader();
 $loader->register();
 
-$loader->addPrefix('Symfony\\Component\\HttpFoundation', __DIR__.'/vendor/symfony/http-foundation');
+$loader->addPrefix('Symfony\\Component\\HttpFoundation', $app_dir.'/vendor/symfony/http-foundation');
