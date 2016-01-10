@@ -1,7 +1,7 @@
 <?php
 /**
- * Web フレームワークをつくろう - Symfony2 コンポーネントの上に (パート 7)
- * http://docs.symfony.gr.jp/symfony2/create-your-framework/part07.html
+ * Web フレームワークをつくろう - Symfony2 コンポーネントの上に (パート 8)
+ * http://docs.symfony.gr.jp/symfony2/create-your-framework/part08.html
  */
 
 require_once __DIR__.'/../vendor/autoload.php';
