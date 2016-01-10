@@ -1,23 +1,38 @@
 <?php
 /**
- * Web フレームワークをつくろう - Symfony2 コンポーネントの上に (パート 8)
- * http://docs.symfony.gr.jp/symfony2/create-your-framework/part08.html
+ * Web フレームワークをつくろう - Symfony2 コンポーネントの上に (パート 9)
+ * http://docs.symfony.gr.jp/symfony2/create-your-framework/part09.html
  */
-
-require_once __DIR__.'/../vendor/autoload.php';
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing;
 use Symfony\Component\HttpKernel;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+
+require_once __DIR__.'/../vendor/autoload.php';
 
 $request = Request::createFromGlobals();
 $routes = include __DIR__.'/../src/app.php';
+
+$dispatcher = new EventDispatcher();
+$dispatcher->addListener('response', function (Simplex\ResponseEvent $event) {
+    $response = $event->getResponse();
+
+    if ($response->isRedirection()
+        || ($response->headers->has('Content-Type') && false === strpos($response->headers->get('Content-Type'), 'html'))
+        || 'html' !== $event->getRequest()->getRequestFormat()
+    ) {
+        return;
+    }
+
+    $response->setContent($response->getContent().'GA CODE');
+});
 
 $context = new Routing\RequestContext();
 $matcher = new Routing\Matcher\UrlMatcher($routes, $context);
 $resolver = new HttpKernel\Controller\ControllerResolver();
 
-$framework = new Simplex\Framework($matcher, $resolver);
+$framework = new Simplex\Framework($dispatcher, $matcher, $resolver);
 $response = $framework->handle($request);
 
 $response->send();
