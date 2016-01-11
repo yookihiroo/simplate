@@ -5,12 +5,22 @@
  */
 
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 require __DIR__. '/../vendor/autoload.php';
 
+$sc = include __DIR__.'/../src/container.php';
+
+$sc->setParameter('charset', 'UTF-8');
+$sc->setParameter('routes', include __DIR__.'/../src/app.php');
+
+//Requestの登録
 $request = Request::createFromGlobals();
-$routes = include __DIR__.'/../src/app.php';
+$sc->set('request', $request);
+$stack = new RequestStack();
+$stack->push($request);
+$sc->set('request.stack', $stack);
 
-$framework = new Simplex\Framework($routes);
+$response = $sc->get('framework')->handle($request);
 
-$framework->handle($request)->send();
+$response->send();
