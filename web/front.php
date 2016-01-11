@@ -1,29 +1,36 @@
 <?php
 /**
- * Web フレームワークをつくろう - Symfony2 コンポーネントの上に (パート 9)
- * http://docs.symfony.gr.jp/symfony2/create-your-framework/part09.html
+ * Web フレームワークをつくろう - Symfony2 コンポーネントの上に (パート 11)
+ * http://docs.symfony.gr.jp/symfony2/create-your-framework/part11.html
  */
 
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing;
 use Symfony\Component\HttpKernel;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
-require_once __DIR__.'/../vendor/autoload.php';
+require __DIR__. '/../vendor/autoload.php';
 
 $request = Request::createFromGlobals();
 $routes = include __DIR__.'/../src/app.php';
 
-$dispatcher = new EventDispatcher();
-$dispatcher->addSubscriber(new Simplex\ContentLengthListener());
-$dispatcher->addSubscriber(new Simplex\GoogleListener());
-
 $context = new Routing\RequestContext();
 $matcher = new Routing\Matcher\UrlMatcher($routes, $context);
 $resolver = new HttpKernel\Controller\ControllerResolver();
+$stack = new Symfony\Component\HttpFoundation\RequestStack();
+$stack->push($request);
 
-$framework = new Simplex\Framework($dispatcher, $matcher, $resolver);
+$dispatcher = new EventDispatcher();
+$dispatcher->addSubscriber(new HttpKernel\EventListener\RouterListener($matcher, $stack));
+
+$listener = new HttpKernel\EventListener\ExceptionListener('Calendar\\Controller\\ErrorController::exceptionAction');
+$dispatcher->addSubscriber($listener);
+$dispatcher->addSubscriber(new HttpKernel\EventListener\ResponseListener('UTF-8'));
+$dispatcher->addSubscriber(new HttpKernel\EventListener\StreamedResponseListener());
+$dispatcher->addSubscriber(new Simplex\StringResponseListener());
+
+$framework = new Simplex\Framework($dispatcher, $resolver, $stack);
+
 $response = $framework->handle($request);
-$framework = new HttpKernel\HttpCache\HttpCache($framework, new HttpKernel\HttpCache\Store(__DIR__.'/../cache'));
-
-$framework->handle($request)->send();
+$response->send();
